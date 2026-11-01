@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SHIV Media Editor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #08090C;
+      --bg-panel: #0E1017;
+      --accent-pink: #E11D48;
+      --accent-cyan: #00F0FF;
+      --accent-purple: #8A2BE2;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-main);
+      color: #F1F5F9;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .neon-border-pink { border-color: rgba(225, 29, 72, 0.4); box-shadow: 0 0 15px rgba(225, 29, 72, 0.15); }
+    .neon-border-cyan { border-color: rgba(0, 240, 255, 0.4); box-shadow: 0 0 15px rgba(0, 240, 255, 0.15); }
+    .glass-card { background: rgba(14, 16, 23, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
+    .tab-active { color: #00F0FF; border-bottom: 2px solid #00F0FF; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+  <!-- ==================== 1. AUTHENTICATION FIRST MODAL / SCREEN ==================== -->
+  <div id="auth-screen" class="fixed inset-0 z-50 bg-[#08090C] flex flex-col justify-center items-center p-6">
+    <div class="w-full max-w-md glass-card rounded-2xl p-6 shadow-2xl border border-rose-500/30 text-center relative overflow-hidden">
+      <div class="absolute -top-24 -left-24 w-48 h-48 bg-rose-600/20 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl"></div>
+      
+      <!-- Logo -->
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-rose-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-rose-500/30">
+        <i class="fa-solid fa-wand-magic-sparkles text-2xl text-white"></i>
+      </div>
+      <h1 class="text-2xl font-black tracking-wide text-white">SHIV <span class="text-rose-500">MEDIA EDITOR</span></h1>
+      <p class="text-xs text-slate-400 mt-1 mb-6 font-mono">Authentication First — Powered by SHIV Identity</p>
+
+      <!-- Auth Tabs -->
+      <div class="flex rounded-lg bg-slate-900/80 p-1 mb-5 border border-slate-800 text-xs">
+        <button id="auth-tab-login" onclick="switchAuthMode('login')" class="flex-1 py-2 rounded-md font-semibold bg-rose-600 text-white transition">Sign In</button>
+        <button id="auth-tab-register" onclick="switchAuthMode('register')" class="flex-1 py-2 rounded-md font-semibold text-slate-400 hover:text-white transition">Create Account</button>
+      </div>
+
+      <!-- Auth Form -->
+      <div class="space-y-3.5 text-left text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">SHIV ID / Email</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500"><i class="fa-solid fa-user"></i></span>
+            <input type="text" id="auth-email" value="creator@shiv.ai" placeholder="Enter username or email" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-slate-200 focus:outline-none focus:border-rose-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Password</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500"><i class="fa-solid fa-lock"></i></span>
+            <input type="password" id="auth-password" value="••••••••" placeholder="Enter password" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-slate-200 focus:outline-none focus:border-rose-500">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+          <label class="flex items-center space-x-2 cursor-pointer">
+            <input type="checkbox" id="auth-biometric" checked class="rounded border-slate-700 text-rose-600 focus:ring-0">
+            <span>Enable Biometric Quick-Unlock</span>
+          </label>
+          <a href="#" class="text-rose-400 hover:underline">Forgot?</a>
+        </div>
+
+        <button onclick="handleAuthSubmit()" id="auth-submit-btn" class="w-full py-3 mt-2 rounded-xl bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-rose-600/30 transition transform active:scale-95 flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-fingerprint"></i>
+          <span>Authenticate & Unlock Studio</span>
+        </button>
+      </div>
+
+      <div class="mt-4 pt-4 border-t border-slate-800/80 text-[10px] text-slate-500">
+        🔒 Connected to SHIV Local Master Node (<span id="node-ip">127.0.0.1:8000</span>)
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 2. MAIN APPLICATION WORKSPACE ==================== -->
+  <div id="app-workspace" class="h-full flex flex-col flex-1 overflow-hidden opacity-0 pointer-events-none transition-opacity duration-300">
+
+    <!-- Top Bar -->
+    <header class="h-14 bg-[#0E1017]/95 border-b border-slate-800/80 px-4 flex items-center justify-between shrink-0 z-30">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-rose-600 to-indigo-600 flex items-center justify-center shadow-md">
+          <i class="fa-solid fa-wand-magic-sparkles text-white text-xs"></i>
+        </div>
+        <div>
+          <div class="font-extrabold text-sm tracking-wide text-white flex items-center">
+            SHIV <span class="text-rose-500 ml-1">MEDIA</span>
+            <span class="text-[9px] bg-rose-500/20 text-rose-400 border border-rose-500/30 px-1 rounded ml-1.5 font-mono">v2.0 PRO</span>
+          </div>
+          <div id="user-badge" class="text-[10px] text-slate-400">creator@shiv.ai</div>
+        </div>
+      </div>
+
+      <!-- Studio Module Switcher (Desktop & Mobile Segment) -->
+      <nav class="hidden md:flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800 text-xs">
+        <button onclick="switchStudio('home')" id="nav-btn-home" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">Home</button>
+        <button onclick="switchStudio('video')" id="nav-btn-video" class="px-3 py-1.5 rounded-lg bg-rose-600 text-white font-semibold transition">Video Studio</button>
+        <button onclick="switchStudio('photo')" id="nav-btn-photo" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">Photo Studio</button>
+        <button onclick="switchStudio('audio')" id="nav-btn-audio" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">Audio Studio</button>
+        <button onclick="switchStudio('motion')" id="nav-btn-motion" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">Motion Graphics</button>
+        <button onclick="switchStudio('templates')" id="nav-btn-templates" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">Templates</button>
+      </nav>
+
+      <!-- Right Header Actions -->
+      <div class="flex items-center space-x-2">
+        <button onclick="toggleAiDrawer()" class="px-3 py-1.5 rounded-xl bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 text-xs font-semibold flex items-center space-x-1.5 hover:bg-cyan-500/30 transition">
+          <i class="fa-solid fa-bolt text-[11px]"></i>
+          <span class="hidden sm:inline">SHIV AI</span>
+        </button>
+        <button onclick="logout()" title="Logout" class="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-rose-400 flex items-center justify-center text-xs">
+          <i class="fa-solid fa-power-off"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Viewport -->
+    <main class="flex-1 overflow-hidden relative flex flex-col">
+
+      <!-- ================= SECTION A: HOME ================= -->
+      <section id="studio-home" class="studio-section hidden flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+        <!-- Hero Banner -->
+        <div class="glass-card rounded-2xl p-6 relative overflow-hidden border border-rose-500/20">
+          <div class="relative z-10 max-w-xl">
+            <span class="px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-400 text-[11px] font-mono border border-rose-500/30">Creative Freedom Unlimited</span>
+            <h2 class="text-2xl md:text-3xl font-black text-white mt-3">Welcome to SHIV Media Studio</h2>
+            <p class="text-xs md:text-sm text-slate-300 mt-2">Produce cinematic 4K videos, AI visual effects, multi-track audio, and animated motion graphics in one native application.</p>
+            <div class="flex flex-wrap gap-3 mt-5">
+              <button onclick="switchStudio('video')" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold flex items-center space-x-2 shadow-lg shadow-rose-600/30 transition">
+                <i class="fa-solid fa-plus"></i>
+                <span>New Video Project</span>
+              </button>
+              <button onclick="switchStudio('templates')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition">
+                Browse Templates
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Studios Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div onclick="switchStudio('video')" class="glass-card p-4 rounded-xl cursor-pointer hover:border-rose-500/50 transition transform hover:-translate-y-1">
+            <div class="w-10 h-10 rounded-lg bg-rose-600/20 border border-rose-500/30 flex items-center justify-center text-rose-400 text-lg mb-3">
+              <i class="fa-solid fa-film"></i>
+            </div>
+            <div class="font-bold text-sm text-white">Video Studio</div>
+            <div class="text-[11px] text-slate-400 mt-1">Multi-track, cuts, Chroma key & 4K render</div>
+          </div>
+          <div onclick="switchStudio('photo')" class="glass-card p-4 rounded-xl cursor-pointer hover:border-cyan-500/50 transition transform hover:-translate-y-1">
+            <div class="w-10 h-10 rounded-lg bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 text-lg mb-3">
+              <i class="fa-solid fa-image"></i>
+            </div>
+            <div class="font-bold text-sm text-white">Photo Studio</div>
+            <div class="text-[11px] text-slate-400 mt-1">AI BG removal, filters & retouching</div>
+          </div>
+          <div onclick="switchStudio('audio')" class="glass-card p-4 rounded-xl cursor-pointer hover:border-indigo-500/50 transition transform hover:-translate-y-1">
+            <div class="w-10 h-10 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-lg mb-3">
+              <i class="fa-solid fa-waveform"></i>
+            </div>
+            <div class="font-bold text-sm text-white">Audio Studio</div>
+            <div class="text-[11px] text-slate-400 mt-1">Waveforms, Neural voiceover & EQ</div>
+          </div>
+          <div onclick="switchStudio('motion')" class="glass-card p-4 rounded-xl cursor-pointer hover:border-purple-500/50 transition transform hover:-translate-y-1">
+            <div class="w-10 h-10 rounded-lg bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 text-lg mb-3">
+              <i class="fa-solid fa-shapes"></i>
+            </div>
+            <div class="font-bold text-sm text-white">Motion Graphics</div>
+            <div class="text-[11px] text-slate-400 mt-1">Keyframe animation & lower thirds</div>
+          </div>
+        </div>
+
+        <!-- Recent Projects -->
+        <div>
+          <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-3">Recent Projects</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="glass-card p-3 rounded-xl flex items-center space-x-3 cursor-pointer hover:border-slate-700 transition">
+              <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&q=80" class="w-16 h-12 rounded-lg object-cover">
+              <div class="flex-1 min-w-0">
+                <div class="font-bold text-xs text-white truncate">Cyberpunk Reel v2</div>
+                <div class="text-[10px] text-slate-400">9:16 • Edited 20 mins ago</div>
+              </div>
+              <button onclick="switchStudio('video')" class="text-rose-400 hover:text-white text-xs"><i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+            <div class="glass-card p-3 rounded-xl flex items-center space-x-3 cursor-pointer hover:border-slate-700 transition">
+              <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=300&q=80" class="w-16 h-12 rounded-lg object-cover">
+              <div class="flex-1 min-w-0">
+                <div class="font-bold text-xs text-white truncate">AI Microchip Teaser</div>
+                <div class="text-[10px] text-slate-400">16:9 • Edited 2 hours ago</div>
+              </div>
+              <button onclick="switchStudio('video')" class="text-rose-400 hover:text-white text-xs"><i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION B: VIDEO STUDIO ================= -->
+      <section id="studio-video" class="studio-section flex-1 flex flex-col overflow-hidden">
+        
+        <!-- Controls & Ratio Bar -->
+        <div class="h-10 border-b border-slate-800 bg-slate-950/80 px-4 flex items-center justify-between shrink-0 text-xs">
+          <div class="flex items-center space-x-2">
+            <span class="text-slate-400 font-medium">Aspect Ratio:</span>
+            <div class="flex rounded-lg bg-slate-900 p-0.5 border border-slate-800 text-[11px]">
+              <button onclick="setVideoRatio('16:9')" id="ratio-btn-16-9" class="px-2 py-0.5 rounded bg-rose-600 text-white font-medium">16:9</button>
+              <button onclick="setVideoRatio('9:16')" id="ratio-btn-9-16" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">9:16 Reel</button>
+              <button onclick="setVideoRatio('1:1')" id="ratio-btn-1-1" class="px-2 py-0.5 rounded text-slate-400 hover:text-white">1:1 Square</button>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="triggerFileInput('video')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] flex items-center space-x-1">
+              <i class="fa-solid fa-upload"></i>
+              <span>Import Clip</span>
+            </button>
+            <button onclick="renderVideoBinary()" class="px-3 py-1 rounded bg-gradient-to-r from-rose-600 to-indigo-600 hover:from-rose-500 hover:to-indigo-500 text-white font-semibold text-[11px] flex items-center space-x-1 shadow-md">
+              <i class="fa-solid fa-file-video"></i>
+              <span>Export Video</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Center Canvas Viewport -->
+        <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+          <!-- Left Drawer: Tool Options -->
+          <div class="w-full md:w-64 border-b md:border-b-0 md:border-r border-slate-800 bg-slate-950/70 p-3 flex md:flex-col space-y-0 md:space-y-3 space-x-2 md:space-x-0 overflow-x-auto md:overflow-y-auto shrink-0 text-xs">
+            <!-- Filter / LUT -->
+            <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 min-w-[200px] md:min-w-0">
+              <div class="font-bold text-slate-200 mb-2 flex items-center justify-between">
+                <span>Color LUT / Filter</span>
+                <i class="fa-solid fa-palette text-rose-400"></i>
+              </div>
+              <select id="video-lut-select" onchange="applyVideoLut(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200">
+                <option value="none">Normal (Standard)</option>
+                <option value="cinematic">Cinematic Teal & Orange</option>
+                <option value="cyberpunk">Cyberpunk Neon</option>
+                <option value="vintage">Vintage 90s Grain</option>
+                <option value="noir">B&W High Contrast</option>
+              </select>
+            </div>
+
+            <!-- Chroma Key / Background Removal -->
+            <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 min-w-[200px] md:min-w-0">
+              <div class="font-bold text-slate-200 mb-2 flex items-center justify-between">
+                <span>AI Background Removal</span>
+                <span class="text-[9px] bg-cyan-500/20 text-cyan-400 px-1 rounded font-mono">Colorkey</span>
+              </div>
+              <button onclick="toggleVideoChromaKey()" id="btn-chromakey" class="w-full py-1.5 rounded-lg bg-slate-800 text-slate-300 font-medium hover:bg-slate-700 transition">
+                Enable Green Screen Cut 🟢
+              </button>
+            </div>
+
+            <!-- AI Voiceover Overlay -->
+            <div class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 min-w-[200px] md:min-w-0">
+              <div class="font-bold text-slate-200 mb-1 flex items-center justify-between">
+                <span>Neural Voiceover</span>
+                <span class="text-[9px] text-indigo-400 font-mono">Edge-TTS</span>
+              </div>
+              <input type="text" id="video-tts-input" value="Time waits for nothing. Create relentlessly." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 mb-2">
+              <button onclick="synthesizeTimelineAudio()" class="w-full py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold transition">
+                Generate Audio 🎙️
+              </button>
+            </div>
+          </div>
+
+          <!-- Video Player Display Container -->
+          <div class="flex-1 flex flex-col items-center justify-center p-4 bg-[#050608] relative overflow-hidden">
+            <div id="video-viewport" class="relative rounded-2xl overflow-hidden shadow-2xl border border-slate-800 bg-black flex items-center justify-center transition-all" style="width: 520px; height: 292px; max-width: 90vw;">
+              <!-- Background / Video source -->
+              <video id="main-video-player" loop playsinline class="w-full h-full object-cover" poster="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1280&q=80">
+                <source src="" type="video/mp4">
+              </video>
+              
+              <!-- Subtitle Overlay -->
+              <div id="video-subtitle-overlay" class="absolute bottom-6 px-4 py-1.5 rounded-xl bg-black/70 backdrop-blur border border-white/10 text-white font-extrabold text-sm tracking-wide text-center uppercase shadow-2xl">
+                TIME WAITS FOR NOTHING
+              </div>
+
+              <!-- Playback Overlay Button -->
+              <button onclick="toggleVideoPlayback()" class="absolute w-14 h-14 rounded-full bg-rose-600/80 hover:bg-rose-500 text-white flex items-center justify-center text-lg shadow-xl transition transform active:scale-90">
+                <i id="video-play-icon" class="fa-solid fa-play ml-1"></i>
+              </button>
+            </div>
+
+            <!-- Scrubber Controller -->
+            <div class="w-full max-w-lg mt-3 glass-card px-3 py-2 rounded-xl flex items-center justify-between text-xs">
+              <button onclick="toggleVideoPlayback()" class="text-slate-300 hover:text-white">
+                <i id="scrubber-play-icon" class="fa-solid fa-play"></i>
+              </button>
+              <span id="video-time-display" class="font-mono text-slate-400 text-[10px] mx-2">00:00 / 00:15</span>
+              <input type="range" id="video-scrubber" min="0" max="15" step="0.1" value="0" oninput="scrubVideo(this.value)" class="flex-1 mx-2 accent-rose-500 cursor-pointer">
+              <span class="text-[10px] text-slate-400 font-mono">1080p</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Timeline Tracks -->
+        <div class="h-44 border-t border-slate-800 bg-slate-950 flex flex-col shrink-0">
+          <div class="h-7 border-b border-slate-800 bg-slate-900/80 px-3 flex items-center justify-between text-[10px] text-slate-400">
+            <span class="font-bold uppercase tracking-wider">Multi-Track Timeline</span>
+            <div class="flex items-center space-x-2">
+              <button onclick="splitCurrentTrack()" class="hover:text-white"><i class="fa-solid fa-scissors mr-1"></i> Split</button>
+              <button onclick="trimCurrentTrack()" class="hover:text-white"><i class="fa-solid fa-crop-simple mr-1"></i> Trim</button>
+              <button onclick="addTimelineTrack()" class="text-rose-400 hover:text-white"><i class="fa-solid fa-plus mr-1"></i> Add Track</button>
+            </div>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-2 space-y-1.5 text-[11px]">
+            <!-- Track 1: Video -->
+            <div class="timeline-track h-9 rounded-lg px-3 flex items-center justify-between bg-rose-950/20 border border-rose-500/20 text-rose-300">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-video text-xs"></i>
+                <span class="font-semibold">V1: Main Video</span>
+              </div>
+              <div class="flex-1 mx-3 h-5 bg-rose-900/40 rounded flex items-center px-2 text-[10px] truncate border border-rose-500/30">
+                clip_uhd_2880.mp4 [00:00 - 00:15]
+              </div>
+              <i class="fa-solid fa-lock text-slate-500"></i>
+            </div>
+            <!-- Track 2: Audio -->
+            <div class="timeline-track h-9 rounded-lg px-3 flex items-center justify-between bg-indigo-950/20 border border-indigo-500/20 text-indigo-300">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-music text-xs"></i>
+                <span class="font-semibold">A1: Voiceover</span>
+              </div>
+              <div class="flex-1 mx-3 h-5 bg-indigo-900/40 rounded flex items-center px-2 text-[10px] truncate border border-indigo-500/30">
+                tts_christopher_voice.mp3 [00:00 - 00:05]
+              </div>
+              <i class="fa-solid fa-volume-high text-slate-400"></i>
+            </div>
+            <!-- Track 3: Subtitles -->
+            <div class="timeline-track h-9 rounded-lg px-3 flex items-center justify-between bg-cyan-950/20 border border-cyan-500/20 text-cyan-300">
+              <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-closed-captioning text-xs"></i>
+                <span class="font-semibold">T1: Subtitles</span>
+              </div>
+              <div class="flex-1 mx-3 h-5 bg-cyan-900/40 rounded flex items-center px-2 text-[10px] truncate border border-cyan-500/30">
+                "TIME WAITS FOR NOTHING"
+              </div>
+              <i class="fa-solid fa-eye text-slate-400"></i>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION C: PHOTO STUDIO ================= -->
+      <section id="studio-photo" class="studio-section hidden flex-1 flex flex-col md:flex-row overflow-hidden">
+        <!-- Photo Sidebar -->
+        <div class="w-full md:w-72 border-b md:border-b-0 md:border-r border-slate-800 bg-slate-950/80 p-4 space-y-4 overflow-y-auto shrink-0 text-xs">
+          <div class="font-bold text-slate-200 uppercase tracking-wider flex items-center space-x-1.5">
+            <i class="fa-solid fa-sliders text-cyan-400"></i>
+            <span>Photo Adjustments</span>
+          </div>
+
+          <!-- Adjustments Sliders -->
+          <div class="space-y-3">
+            <div>
+              <div class="flex justify-between text-slate-400 text-[11px] mb-1">
+                <span>Brightness</span>
+                <span id="val-brightness">100%</span>
+              </div>
+              <input type="range" id="slider-brightness" min="50" max="150" value="100" oninput="applyPhotoFilters()" class="w-full accent-cyan-500">
+            </div>
+            <div>
+              <div class="flex justify-between text-slate-400 text-[11px] mb-1">
+                <span>Contrast</span>
+                <span id="val-contrast">100%</span>
+              </div>
+              <input type="range" id="slider-contrast" min="50" max="150" value="100" oninput="applyPhotoFilters()" class="w-full accent-cyan-500">
+            </div>
+            <div>
+              <div class="flex justify-between text-slate-400 text-[11px] mb-1">
+                <span>Saturation</span>
+                <span id="val-saturation">100%</span>
+              </div>
+              <input type="range" id="slider-saturation" min="0" max="200" value="100" oninput="applyPhotoFilters()" class="w-full accent-cyan-500">
+            </div>
+          </div>
+
+          <!-- AI Magic Cutout -->
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+            <div class="font-bold text-slate-200">AI Background Eraser</div>
+            <button onclick="aiPhotoRemoveBg()" class="w-full py-2 bg-gradient-to-r from-cyan-600 to-indigo-600 text-white rounded-lg font-semibold shadow-md transition">
+              Isolate Subject (PNG) ✨
+            </button>
+          </div>
+
+          <!-- Add Text Sticker -->
+          <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2">
+            <div class="font-bold text-slate-200">Text & Watermark</div>
+            <input type="text" id="photo-text-input" value="SHIV AI CREATIVE" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-slate-200 text-xs">
+            <button onclick="addPhotoText()" class="w-full py-1.5 bg-slate-800 text-slate-200 border border-slate-700 rounded-lg hover:bg-slate-700">
+              Stamp Text
+            </button>
+          </div>
+
+          <button onclick="exportPhoto()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition">
+            Export High-Res PNG 🖼️
+          </button>
+        </div>
+
+        <!-- Photo Canvas Viewport -->
+        <div class="flex-1 flex items-center justify-center p-6 bg-[#050608] overflow-hidden">
+          <div class="relative max-w-full max-h-full rounded-xl overflow-hidden shadow-2xl border border-slate-800">
+            <canvas id="photo-canvas" width="600" height="400" class="max-w-full h-auto bg-slate-950"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION D: AUDIO STUDIO ================= -->
+      <section id="studio-audio" class="studio-section hidden flex-1 flex flex-col p-4 md:p-8 space-y-6 overflow-y-auto">
+        <div class="glass-card rounded-2xl p-6 border border-indigo-500/20 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-lg">
+                <i class="fa-solid fa-wave-square"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-white">Audio Waveform Master</h3>
+                <p class="text-xs text-slate-400">Multi-track audio, speech synthesis & sound effects</p>
+              </div>
+            </div>
+            <button onclick="toggleAudioPreview()" id="audio-play-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs flex items-center space-x-2 shadow-lg">
+              <i class="fa-solid fa-play"></i>
+              <span>Play Waveform</span>
+            </button>
+          </div>
+
+          <!-- Dynamic Waveform Canvas -->
+          <div class="h-28 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden relative">
+            <canvas id="audio-waveform-canvas" width="800" height="112" class="w-full h-full"></canvas>
+          </div>
+
+          <!-- Sound FX Board -->
+          <div>
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 block">Cinematic Sound Effects</span>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <button onclick="playSoundFx('whoosh')" class="p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500 text-slate-200 text-xs font-medium flex items-center space-x-2">
+                <i class="fa-solid fa-wind text-indigo-400"></i>
+                <span>Fast Whoosh</span>
+              </button>
+              <button onclick="playSoundFx('subdrop')" class="p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500 text-slate-200 text-xs font-medium flex items-center space-x-2">
+                <i class="fa-solid fa-bullhorn text-indigo-400"></i>
+                <span>Sub Bass Drop</span>
+              </button>
+              <button onclick="playSoundFx('glitch')" class="p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500 text-slate-200 text-xs font-medium flex items-center space-x-2">
+                <i class="fa-solid fa-bolt text-indigo-400"></i>
+                <span>Cyber Glitch</span>
+              </button>
+              <button onclick="playSoundFx('riser')" class="p-3 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500 text-slate-200 text-xs font-medium flex items-center space-x-2">
+                <i class="fa-solid fa-chart-line text-indigo-400"></i>
+                <span>Cinematic Riser</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION E: MOTION & ANIMATION ================= -->
+      <section id="studio-motion" class="studio-section hidden flex-1 flex flex-col p-4 md:p-8 space-y-6 overflow-y-auto">
+        <div class="glass-card rounded-2xl p-6 border border-purple-500/20 space-y-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400 text-lg">
+              <i class="fa-solid fa-shapes"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-white">Motion Graphics Engine</h3>
+              <p class="text-xs text-slate-400">Keyframe typography, kinetic lower-thirds & particle presets</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div onclick="applyMotionPreset('lower-third')" class="glass-card p-4 rounded-xl cursor-pointer hover:border-purple-500 transition">
+              <div class="font-bold text-xs text-white mb-1">Cyber Lower Third</div>
+              <div class="text-[11px] text-slate-400">Smooth neon title bar sliding into frame.</div>
+            </div>
+            <div onclick="applyMotionPreset('logo-reveal')" class="glass-card p-4 rounded-xl cursor-pointer hover:border-purple-500 transition">
+              <div class="font-bold text-xs text-white mb-1">Explosive Logo Reveal</div>
+              <div class="text-[11px] text-slate-400">Radial particle burst with 3D scale spring.</div>
+            </div>
+            <div onclick="applyMotionPreset('kinetic')" class="glass-card p-4 rounded-xl cursor-pointer hover:border-purple-500 transition">
+              <div class="font-bold text-xs text-white mb-1">Kinetic Typography</div>
+              <div class="text-[11px] text-slate-400">Word-by-word pulse aligned to voiceover beats.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION F: TEMPLATES ================= -->
+      <section id="studio-templates" class="studio-section hidden flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+        <div>
+          <h2 class="text-xl font-black text-white">Creative Templates Library</h2>
+          <p class="text-xs text-slate-400">One-tap fully customizable templates for social media, YouTube, and reels</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <!-- Template 1 -->
+          <div class="glass-card rounded-xl overflow-hidden group hover:border-rose-500/40 transition">
+            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&q=80" class="w-full h-36 object-cover group-hover:scale-105 transition duration-300">
+            <div class="p-3">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[9px] bg-rose-500/20 text-rose-400 border border-rose-500/30 px-1.5 py-0.5 rounded font-mono">9:16 REEL</span>
+                <span class="text-[10px] text-slate-400">15s</span>
+              </div>
+              <div class="font-bold text-xs text-white">Cyberpunk Tech Beat</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">High-energy cuts synced to glitch bass.</p>
+              <button onclick="loadTemplate('cyberpunk')" class="w-full mt-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-semibold">
+                Use Template 🚀
+              </button>
+            </div>
+          </div>
+
+          <!-- Template 2 -->
+          <div class="glass-card rounded-xl overflow-hidden group hover:border-cyan-500/40 transition">
+            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&q=80" class="w-full h-36 object-cover group-hover:scale-105 transition duration-300">
+            <div class="p-3">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[9px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-1.5 py-0.5 rounded font-mono">16:9 YOUTUBE</span>
+                <span class="text-[10px] text-slate-400">10s</span>
+              </div>
+              <div class="font-bold text-xs text-white">Futuristic AI Intro</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">Sleek microchip circuit reveal with 3D logo.</p>
+              <button onclick="loadTemplate('ai-intro')" class="w-full mt-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-semibold">
+                Use Template 🚀
+              </button>
+            </div>
+          </div>
+
+          <!-- Template 3 -->
+          <div class="glass-card rounded-xl overflow-hidden group hover:border-purple-500/40 transition">
+            <img src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=500&q=80" class="w-full h-36 object-cover group-hover:scale-105 transition duration-300">
+            <div class="p-3">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-[9px] bg-purple-500/20 text-purple-400 border border-purple-500/30 px-1.5 py-0.5 rounded font-mono">1:1 INSTAGRAM</span>
+                <span class="text-[10px] text-slate-400">Square</span>
+              </div>
+              <div class="font-bold text-xs text-white">Retro Synthwave Promo</div>
+              <p class="text-[10px] text-slate-400 mt-0.5">80s aesthetic sun with chrome metallic text.</p>
+              <button onclick="loadTemplate('synthwave')" class="w-full mt-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-semibold">
+                Use Template 🚀
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Mobile Bottom Navigation Bar (< md screens) -->
+    <nav class="md:hidden h-14 bg-[#0E1017] border-t border-slate-800 px-2 flex items-center justify-around shrink-0 z-20 text-[10px]">
+      <button onclick="switchStudio('home')" id="mob-nav-home" class="flex flex-col items-center text-slate-400 hover:text-white">
+        <i class="fa-solid fa-house text-sm"></i>
+        <span>Home</span>
+      </button>
+      <button onclick="switchStudio('video')" id="mob-nav-video" class="flex flex-col items-center text-rose-500">
+        <i class="fa-solid fa-film text-sm"></i>
+        <span>Video</span>
+      </button>
+      <button onclick="switchStudio('photo')" id="mob-nav-photo" class="flex flex-col items-center text-slate-400 hover:text-white">
+        <i class="fa-solid fa-image text-sm"></i>
+        <span>Photo</span>
+      </button>
+      <button onclick="switchStudio('audio')" id="mob-nav-audio" class="flex flex-col items-center text-slate-400 hover:text-white">
+        <i class="fa-solid fa-waveform text-sm"></i>
+        <span>Audio</span>
+      </button>
+      <button onclick="switchStudio('templates')" id="mob-nav-templates" class="flex flex-col items-center text-slate-400 hover:text-white">
+        <i class="fa-solid fa-layer-group text-sm"></i>
+        <span>Templates</span>
+      </button>
+    </nav>
+
+    <!-- ================= SHIV AI ASSISTANT BOTTOM DRAWER ================= -->
+    <div id="ai-drawer" class="fixed inset-x-0 bottom-0 z-40 bg-[#0E1017] border-t border-cyan-500/40 rounded-t-2xl p-4 shadow-2xl transform translate-y-full transition-transform duration-300 max-h-[85vh] flex flex-col">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center space-x-2">
+          <div class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <span class="font-bold text-xs text-white">SHIV AI Copilot</span>
+        </div>
+        <button onclick="toggleAiDrawer()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-times"></i></button>
+      </div>
+
+      <!-- Quick AI Chips -->
+      <div class="flex space-x-2 py-3 overflow-x-auto text-[11px] shrink-0">
+        <button onclick="applyAiPrompt('Remove video background')" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-300 whitespace-nowrap hover:border-cyan-400">✂️ Remove Background</button>
+        <button onclick="applyAiPrompt('Generate cinematic reel')" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-300 whitespace-nowrap hover:border-cyan-400">🎬 Cinematic Reel</button>
+        <button onclick="applyAiPrompt('Add voiceover: Time waits for nothing')" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-300 whitespace-nowrap hover:border-cyan-400">🎙️ AI Voiceover</button>
+        <button onclick="applyAiPrompt('Auto-sync subtitles')" class="px-2.5 py-1 rounded-full bg-slate-900 border border-slate-700 text-slate-300 whitespace-nowrap hover:border-cyan-400">✍️ Auto Subtitles</button>
+      </div>
+
+      <!-- AI Chat History -->
+      <div id="ai-chat-history" class="flex-1 overflow-y-auto p-2 space-y-2 text-xs bg-slate-950/60 rounded-xl my-2 border border-slate-800 min-h-[140px]">
+        <div class="p-2.5 rounded-lg bg-slate-900/80 text-slate-300 border border-slate-800">
+          👋 Hello! I am your native <strong>SHIV AI Creative Copilot</strong>. Tell me what changes or media you would like to generate or edit.
+        </div>
+      </div>
+
+      <!-- AI Prompt Input -->
+      <div class="flex items-center space-x-2 pt-2">
+        <input type="text" id="ai-user-prompt" placeholder="Ask SHIV AI to edit, cut, grade, or generate..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-400">
+        <button onclick="sendAiCommand()" class="px-4 py-2 bg-gradient-to-r from-cyan-500 to-indigo-600 text-white rounded-xl text-xs font-bold shadow-md hover:opacity-90">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Hidden native file input -->
+  <input type="file" id="native-file-picker" class="hidden" accept="video/*,image/*,audio/*" onchange="handleFilePicked(event)">
+
+  <!-- ================= APPLICATION JAVASCRIPT ================= -->
+  <script>
+    const BACKEND_URL = "http://127.0.0.1:8000";
+    let currentUser = null;
+    let isPlaying = false;
+    let videoTimer = null;
+    let currentAspect = "16:9";
+    let chromaEnabled = false;
+
+    // --- 1. AUTHENTICATION ---
+    function checkExistingAuth() {
+      const savedToken = localStorage.getItem('shiv_auth_token');
+      const savedUser = localStorage.getItem('shiv_user_email');
+      if (savedToken && savedUser) {
+        unlockApp(savedUser);
+      }
+    }
+
+    function switchAuthMode(mode) {
+      const loginTab = document.getElementById('auth-tab-login');
+      const regTab = document.getElementById('auth-tab-register');
+      const btn = document.getElementById('auth-submit-btn');
+      if (mode === 'login') {
+        loginTab.className = "flex-1 py-2 rounded-md font-semibold bg-rose-600 text-white transition";
+        regTab.className = "flex-1 py-2 rounded-md font-semibold text-slate-400 hover:text-white transition";
+        btn.innerHTML = '<i class="fa-solid fa-fingerprint mr-2"></i>Authenticate & Unlock Studio';
+      } else {
+        regTab.className = "flex-1 py-2 rounded-md font-semibold bg-rose-600 text-white transition";
+        loginTab.className = "flex-1 py-2 rounded-md font-semibold text-slate-400 hover:text-white transition";
+        btn.innerHTML = '<i class="fa-solid fa-user-plus mr-2"></i>Create SHIV Identity Account';
+      }
+    }
+
+    function handleAuthSubmit() {
+      const email = document.getElementById('auth-email').value.trim();
+      if (!email) {
+        alert("Please enter a valid SHIV ID or email.");
+        return;
+      }
+      localStorage.setItem('shiv_auth_token', 'shiv_sec_' + Date.now());
+      localStorage.setItem('shiv_user_email', email);
+      unlockApp(email);
+    }
+
+    function unlockApp(email) {
+      currentUser = email;
+      document.getElementById('user-badge').innerText = email;
+      const authScreen = document.getElementById('auth-screen');
+      const workspace = document.getElementById('app-workspace');
+      authScreen.classList.add('hidden');
+      workspace.classList.remove('opacity-0', 'pointer-events-none');
+    }
+
+    function logout() {
+      localStorage.removeItem('shiv_auth_token');
+      localStorage.removeItem('shiv_user_email');
+      document.getElementById('auth-screen').classList.remove('hidden');
+      document.getElementById('app-workspace').classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    // --- 2. STUDIO NAVIGATION ---
+    function switchStudio(name) {
+      document.querySelectorAll('.studio-section').forEach(el => el.classList.add('hidden'));
+      const target = document.getElementById('studio-' + name);
+      if (target) target.classList.remove('hidden');
+
+      // Update desktop buttons
+      document.querySelectorAll('nav button').forEach(b => {
+        b.classList.remove('bg-rose-600', 'text-white', 'font-semibold');
+        b.classList.add('text-slate-400');
+      });
+      const activeBtn = document.getElementById('nav-btn-' + name);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-rose-600', 'text-white', 'font-semibold');
+        activeBtn.classList.remove('text-slate-400');
+      }
+
+      // Update mobile tabs
+      ['home', 'video', 'photo', 'audio', 'templates'].forEach(m => {
+        const mobEl = document.getElementById('mob-nav-' + m);
+        if (mobEl) {
+          if (m === name) {
+            mobEl.className = "flex flex-col items-center text-rose-500 font-bold";
+          } else {
+            mobEl.className = "flex flex-col items-center text-slate-400 hover:text-white";
+          }
+        }
+      });
+    }
+
+    // --- 3. VIDEO STUDIO ACTIONS ---
+    function setVideoRatio(ratio) {
+      currentAspect = ratio;
+      const box = document.getElementById('video-viewport');
+      ['16-9', '9-16', '1-1'].forEach(r => {
+        const btn = document.getElementById('ratio-btn-' + r);
+        if (btn) btn.className = "px-2 py-0.5 rounded text-slate-400 hover:text-white";
+      });
+      const activeBtn = document.getElementById('ratio-btn-' + ratio.replace(':', '-'));
+      if (activeBtn) activeBtn.className = "px-2 py-0.5 rounded bg-rose-600 text-white font-medium";
+
+      if (ratio === '16:9') {
+        box.style.width = '520px';
+        box.style.height = '292px';
+      } else if (ratio === '9:16') {
+        box.style.width = '240px';
+        box.style.height = '426px';
+      } else if (ratio === '1:1') {
+        box.style.width = '320px';
+        box.style.height = '320px';
+      }
+    }
+
+    function toggleVideoPlayback() {
+      const vid = document.getElementById('main-video-player');
+      const icon = document.getElementById('video-play-icon');
+      const scrubIcon = document.getElementById('scrubber-play-icon');
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        icon.className = "fa-solid fa-pause";
+        scrubIcon.className = "fa-solid fa-pause";
+        vid.play().catch(() => {});
+        startVideoTicker();
+      } else {
+        icon.className = "fa-solid fa-play ml-1";
+        scrubIcon.className = "fa-solid fa-play";
+        vid.pause();
+        clearInterval(videoTimer);
+      }
+    }
+
+    function startVideoTicker() {
+      clearInterval(videoTimer);
+      const scrubber = document.getElementById('video-scrubber');
+      const display = document.getElementById('video-time-display');
+      videoTimer = setInterval(() => {
+        let val = parseFloat(scrubber.value) + 0.1;
+        if (val > 15) val = 0;
+        scrubber.value = val;
+        display.innerText = '00:' + (val < 10 ? '0' : '') + val.toFixed(1) + ' / 00:15';
+      }, 100);
+    }
+
+    function scrubVideo(val) {
+      document.getElementById('video-time-display').innerText = '00:' + (val < 10 ? '0' : '') + parseFloat(val).toFixed(1) + ' / 00:15';
+    }
+
+    function applyVideoLut(lut) {
+      const vid = document.getElementById('main-video-player');
+      if (lut === 'cinematic') {
+        vid.style.filter = 'contrast(125%) saturate(135%) hue-rotate(15deg)';
+      } else if (lut === 'cyberpunk') {
+        vid.style.filter = 'contrast(150%) saturate(160%) hue-rotate(290deg)';
+      } else if (lut === 'vintage') {
+        vid.style.filter = 'sepia(40%) contrast(110%) brightness(95%)';
+      } else if (lut === 'noir') {
+        vid.style.filter = 'grayscale(100%) contrast(160%)';
+      } else {
+        vid.style.filter = 'none';
+      }
+    }
+
+    function toggleVideoChromaKey() {
+      chromaEnabled = !chromaEnabled;
+      const btn = document.getElementById('btn-chromakey');
+      const overlay = document.getElementById('video-subtitle-overlay');
+      if (chromaEnabled) {
+        btn.innerText = "Background Removed (Active) 🟢";
+        btn.className = "w-full py-1.5 rounded-lg bg-emerald-600 text-white font-semibold transition";
+        overlay.innerText = "AI COLORKY APPLIED";
+      } else {
+        btn.innerText = "Enable Green Screen Cut 🟢";
+        btn.className = "w-full py-1.5 rounded-lg bg-slate-800 text-slate-300 font-medium hover:bg-slate-700 transition";
+        overlay.innerText = "TIME WAITS FOR NOTHING";
+      }
+    }
+
+    function synthesizeTimelineAudio() {
+      const txt = document.getElementById('video-tts-input').value;
+      const overlay = document.getElementById('video-subtitle-overlay');
+      overlay.innerText = txt.toUpperCase();
+      alert("AI Voiceover synthesized! Added audio track to timeline.");
+    }
+
+    function renderVideoBinary() {
+      alert("Exporting Video Render Manifest (1080p MP4). Background render task initiated on SHIV Node.");
+    }
+
+    function splitCurrentTrack() { alert("Split track at playhead position."); }
+    function trimCurrentTrack() { alert("Trimmed clip to selected in/out points."); }
+    function addTimelineTrack() { alert("Added new overlay track to timeline."); }
+
+    // --- 4. PHOTO CANVAS ACTIONS ---
+    function initPhotoCanvas() {
+      const cvs = document.getElementById('photo-canvas');
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80";
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, cvs.width, cvs.height);
+      };
+    }
+
+    function applyPhotoFilters() {
+      const b = document.getElementById('slider-brightness').value;
+      const c = document.getElementById('slider-contrast').value;
+      const s = document.getElementById('slider-saturation').value;
+      document.getElementById('val-brightness').innerText = b + '%';
+      document.getElementById('val-contrast').innerText = c + '%';
+      document.getElementById('val-saturation').innerText = s + '%';
+      const cvs = document.getElementById('photo-canvas');
+      cvs.style.filter = `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
+    }
+
+    function aiPhotoRemoveBg() {
+      alert("AI Subject Isolation active. Background removed; transparent PNG ready.");
+    }
+
+    function addPhotoText() {
+      const cvs = document.getElementById('photo-canvas');
+      const ctx = cvs.getContext('2d');
+      const txt = document.getElementById('photo-text-input').value;
+      ctx.font = "bold 28px Inter, sans-serif";
+      ctx.fillStyle = "#00F0FF";
+      ctx.fillText(txt, 40, cvs.height - 40);
+    }
+
+    function exportPhoto() {
+      const cvs = document.getElementById('photo-canvas');
+      const link = document.createElement('a');
+      link.download = 'shiv_photo_export.png';
+      link.href = cvs.toDataURL();
+      link.click();
+    }
+
+    // --- 5. AUDIO & SFX ---
+    let audioCtx = null;
+    function playSoundFx(type) {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+
+      if (type === 'whoosh') {
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else if (type === 'subdrop') {
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.8);
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.8);
+        osc.start(now);
+        osc.stop(now + 0.8);
+      } else if (type === 'glitch') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.setValueAtTime(200, now + 0.05);
+        osc.frequency.setValueAtTime(1200, now + 0.1);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      } else {
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(900, now + 0.6);
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.6);
+        osc.start(now);
+        osc.stop(now + 0.6);
+      }
+    }
+
+    function toggleAudioPreview() {
+      playSoundFx('whoosh');
+      drawAudioWaveform();
+    }
+
+    function drawAudioWaveform() {
+      const cvs = document.getElementById('audio-waveform-canvas');
+      if (!cvs) return;
+      const ctx = cvs.getContext('2d');
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      ctx.fillStyle = "#8A2BE2";
+      for (let i = 0; i < cvs.width; i += 6) {
+        const h = Math.random() * cvs.height * 0.8;
+        ctx.fillRect(i, (cvs.height - h) / 2, 3, h);
+      }
+    }
+
+    // --- 6. TEMPLATES & MOTION ---
+    function loadTemplate(tpl) {
+      switchStudio('video');
+      if (tpl === 'cyberpunk') {
+        setVideoRatio('9:16');
+        applyVideoLut('cyberpunk');
+        document.getElementById('video-subtitle-overlay').innerText = 'CYBERPUNK REEL';
+      } else if (tpl === 'ai-intro') {
+        setVideoRatio('16:9');
+        applyVideoLut('cinematic');
+        document.getElementById('video-subtitle-overlay').innerText = 'SHIV AI V2.0 ENGINE';
+      } else {
+        setVideoRatio('1:1');
+        applyVideoLut('vintage');
+        document.getElementById('video-subtitle-overlay').innerText = 'RETRO SYNTH';
+      }
+    }
+
+    function applyMotionPreset(type) {
+      alert("Motion Preset '" + type + "' activated and loaded into project timeline!");
+      switchStudio('video');
+    }
+
+    // --- 7. SHIV AI COPILOT ---
+    let aiDrawerOpen = false;
+    function toggleAiDrawer() {
+      aiDrawerOpen = !aiDrawerOpen;
+      const drawer = document.getElementById('ai-drawer');
+      if (aiDrawerOpen) {
+        drawer.classList.remove('translate-y-full');
+      } else {
+        drawer.classList.add('translate-y-full');
+      }
+    }
+
+    function applyAiPrompt(txt) {
+      document.getElementById('ai-user-prompt').value = txt;
+      sendAiCommand();
+    }
+
+    function sendAiCommand() {
+      const inp = document.getElementById('ai-user-prompt');
+      const val = inp.value.trim();
+      if (!val) return;
+      inp.value = '';
+
+      const history = document.getElementById('ai-chat-history');
+      const userBubble = document.createElement('div');
+      userBubble.className = "p-2 rounded-lg bg-rose-600/20 text-rose-300 border border-rose-500/30 text-right";
+      userBubble.innerText = val;
+      history.appendChild(userBubble);
+
+      // AI Response logic
+      setTimeout(() => {
+        const aiBubble = document.createElement('div');
+        aiBubble.className = "p-2.5 rounded-lg bg-slate-900 text-cyan-300 border border-cyan-500/30";
+        if (val.toLowerCase().includes('background')) {
+          toggleVideoChromaKey();
+          aiBubble.innerHTML = "✨ Done! I have removed the video background using colorkey transparency.";
+        } else if (val.toLowerCase().includes('voiceover')) {
+          synthesizeTimelineAudio();
+          aiBubble.innerHTML = "🎙️ AI voiceover synthesized and synchronized to the timeline track.";
+        } else if (val.toLowerCase().includes('reel') || val.toLowerCase().includes('cinematic')) {
+          setVideoRatio('9:16');
+          applyVideoLut('cinematic');
+          aiBubble.innerHTML = "🎬 Switched aspect ratio to 9:16 Reel and applied cinematic color grading.";
+        } else {
+          aiBubble.innerHTML = `⚡ Processed command: "${val}". Timeline updated successfully.`;
+        }
+        history.appendChild(aiBubble);
+        history.scrollTop = history.scrollHeight;
+      }, 500);
+    }
+
+    // --- 8. FILE PICKER HELPER ---
+    function triggerFileInput(type) {
+      document.getElementById('native-file-picker').click();
+    }
+
+    function handleFilePicked(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      alert("Loaded media: " + file.name + " (" + (file.size / 1024 / 1024).toFixed(1) + " MB)");
+      const url = URL.createObjectURL(file);
+      if (file.type.startsWith('video')) {
+        document.getElementById('main-video-player').src = url;
+      }
+    }
+
+    // On Load
+    window.addEventListener('DOMContentLoaded', () => {
+      checkExistingAuth();
+      initPhotoCanvas();
+      drawAudioWaveform();
+    });
+  </script>
+</body>
+</html>

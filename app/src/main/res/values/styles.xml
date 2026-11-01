@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.SHIVMediaEditor" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:statusBarColor">#08090C</item>
+        <item name="android:navigationBarColor">#08090C</item>
+        <item name="android:windowBackground">#08090C</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
